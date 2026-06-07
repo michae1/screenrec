@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- RECORD_AUDIO makes Google Play implicitly require a microphone, which filters out
+         some tablets (e.g. Galaxy Tab A7 Lite) as "incompatible". The mic is optional in this
+         app (toggle), so declare the feature not-required to keep the app installable. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
