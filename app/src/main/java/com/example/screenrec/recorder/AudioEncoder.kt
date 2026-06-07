@@ -97,15 +97,35 @@ class AudioEncoder(
         feed(ByteArray(0), 0, endOfStream = true)
     }
 
+    /**
+     * Feeds [size] bytes of PCM into the encoder. An AudioRecord read can be larger than a
+     * single codec input buffer (one AAC frame), so the data is split across as many input
+     * buffers as needed instead of overflowing one.
+     */
     private fun feed(data: ByteArray, size: Int, endOfStream: Boolean) {
-        val inIndex = codec.dequeueInputBuffer(10_000)
-        if (inIndex < 0) return
-        val inBuf = codec.getInputBuffer(inIndex)!!
-        inBuf.clear()
-        if (size > 0) inBuf.put(data, 0, size)
-        val flags = if (endOfStream) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0
-        codec.queueInputBuffer(inIndex, 0, size, ptsUs, flags)
-        ptsUs += 1_000_000L * (size / 2) / sampleRate
+        var offset = 0
+        // Anchor each read to the system monotonic clock (microseconds). The video frames from
+        // the projection Surface are timestamped with the same CLOCK_MONOTONIC, so both tracks
+        // share one timeline and stay in A/V sync. Sub-chunks of one read advance by their own
+        // sample duration to stay monotonic.
+        ptsUs = System.nanoTime() / 1000
+        while (running || endOfStream) {
+            val inIndex = codec.dequeueInputBuffer(10_000)
+            if (inIndex < 0) {
+                if (offset >= size && !endOfStream) return
+                continue
+            }
+            val inBuf = codec.getInputBuffer(inIndex)!!
+            inBuf.clear()
+            val chunk = minOf(size - offset, inBuf.remaining())
+            if (chunk > 0) inBuf.put(data, offset, chunk)
+            offset += chunk
+            val eos = endOfStream && offset >= size
+            val flags = if (eos) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0
+            codec.queueInputBuffer(inIndex, 0, chunk, ptsUs, flags)
+            ptsUs += 1_000_000L * (chunk / 2) / sampleRate
+            if (eos || offset >= size) return
+        }
     }
 
     private fun drainLoop() {
