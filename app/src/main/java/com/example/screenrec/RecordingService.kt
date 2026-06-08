@@ -83,7 +83,7 @@ class RecordingService : Service() {
     private fun createChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Запис екрана",
+            getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_LOW,
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -98,10 +98,10 @@ class RecordingService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Йде запис екрана")
+            .setContentTitle(getString(R.string.notif_recording_title))
             .setSmallIcon(android.R.drawable.presence_video_online)
             .addAction(
-                Notification.Action.Builder(null, "Зупинити", stopPending).build(),
+                Notification.Action.Builder(null, getString(R.string.stop), stopPending).build(),
             )
             .setOngoing(true)
             .build()

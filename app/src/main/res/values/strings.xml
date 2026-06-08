@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Just Rec</string>
+    <string name="mic_label">Microphone</string>
+    <string name="start_recording">Start recording</string>
+    <string name="recording_hint">Recording… stop it from the notification shade</string>
+    <string name="stop">Stop</string>
+    <string name="audio_permission_required">Audio permission is required to record</string>
+    <string name="notif_channel_name">Screen recording</string>
+    <string name="notif_recording_title">Recording the screen</string>
 </resources>
