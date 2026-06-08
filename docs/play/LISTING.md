@@ -1,25 +1,29 @@
-# Play Store listing — ScreenRec (uk)
+# Play Store listing — Just Rec (en)
 
 ## App name
-ScreenRec
+Just Rec
 
 ## Short description (≤ 80 chars)
-Простий запис екрана з відео та звуком в один MP4.
+One tap to record your screen with audio. No menus, no clutter. Just rec.
 
 ## Full description
-ScreenRec — максимально простий запис екрана для Android.
+Just Rec is a screen recorder with one job — record your screen, with sound, into a normal video file. That's it.
 
-Одна кнопка «Почати запис» — і додаток пише все, що відбувається на екрані, разом зі звуком у відеофайл MP4. Зупинити можна кнопкою у шторці сповіщень. Готове відео одразу з'являється в Галереї.
+No menus to dig through, no settings to configure, no account, no ads. Open it, tap one button, and it records everything on your screen together with the audio. When you're done, tap Stop in the notification — the video appears right in your Gallery as an MP4.
 
-Можливості:
-• Запис відео з екрана у повній роздільності
-• Запис системного звуку (звук гри, відео, додатків)
-• Перемикач мікрофона — додавайте власний голос/коментар або вимикайте його
-• Збереження у звичайний MP4 у папку Movies/ScreenRec (видно в Галереї)
-• Без реклами, без акаунтів, без інтернету — усе працює офлайн
-• Жодні дані не збираються і нікуди не надсилаються
+Most screen recorders pile on editors, watermarks, sign-ins and a dozen toggles. Just Rec deliberately doesn't. It's almost too simple — and that's the point.
 
-Ідеально, щоб записати проходження гри з коментарем, зберегти відеодзвінок чи показати, як щось зробити на телефоні.
+What it does:
+• Records your screen in full resolution
+• Captures internal/system audio (game, video, app sound)
+• Microphone toggle — add your own voice and commentary, or turn it off
+• Saves a standard MP4 to Movies/ScreenRec (shows up in your Gallery)
+• Works fully offline — no account, no internet, no ads
+• Collects no data and sends nothing anywhere
+
+Perfect for recording gameplay with commentary, saving a video call, or showing someone how to do something on the phone.
+
+One button. That's the whole app.
 
 ## Category
 Tools (Інструменти)
