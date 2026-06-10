@@ -30,9 +30,40 @@ class AudioEncoder(
     private var running = false
     private var captureThread: Thread? = null
     private var drainThread: Thread? = null
+    private var micThread: Thread? = null
 
     private val minBuf =
         AudioRecord.getMinBufferSize(sampleRate, channelMask, AudioFormat.ENCODING_PCM_16BIT)
+
+    // Microphone is read on its own thread into this bounded buffer so that a slow/bursty
+    // system-audio read can never starve the mic AudioRecord (which otherwise overruns and
+    // stops delivering after a few seconds). The capture loop drains whatever has accumulated.
+    private val micBuffer = PcmBuffer(maxBytes = minBuf * 4)
+
+    /** Tiny thread-safe PCM byte buffer that keeps the most recent audio and drops the oldest. */
+    private class PcmBuffer(private val maxBytes: Int) {
+        private val out = java.io.ByteArrayOutputStream()
+
+        @Synchronized
+        fun write(data: ByteArray, len: Int) {
+            out.write(data, 0, len)
+            if (out.size() > maxBytes) {
+                val a = out.toByteArray()
+                out.reset()
+                out.write(a, a.size - maxBytes, maxBytes)
+            }
+        }
+
+        /** Returns up to [n] bytes (oldest first); leftover stays buffered. */
+        @Synchronized
+        fun drain(n: Int): ByteArray {
+            val a = out.toByteArray()
+            out.reset()
+            if (a.size <= n) return a
+            out.write(a, n, a.size - n)
+            return a.copyOfRange(0, n)
+        }
+    }
 
     @SuppressLint("MissingPermission")
     fun prepare() {
@@ -76,19 +107,33 @@ class AudioEncoder(
         systemRecord?.startRecording()
         micRecord?.startRecording()
         running = true
+        if (micRecord != null) {
+            micThread = Thread { micLoop() }.also { it.start() }
+        }
         captureThread = Thread { captureLoop() }.also { it.start() }
         drainThread = Thread { drainLoop() }.also { it.start() }
     }
 
+    /** Continuously drains the mic AudioRecord so it never overruns; buffers for the mixer. */
+    private fun micLoop() {
+        val rec = micRecord ?: return
+        val buf = ByteArray(minBuf)
+        while (running) {
+            val m = rec.read(buf, 0, buf.size)
+            if (m > 0) micBuffer.write(buf, m)
+        }
+    }
+
     private fun captureLoop() {
         val sysBuf = ByteArray(minBuf)
-        val micBuf = ByteArray(minBuf)
         while (running) {
             val n = systemRecord?.read(sysBuf, 0, sysBuf.size) ?: 0
             if (n <= 0) continue
             val data = if (micRecord != null) {
-                val m = micRecord!!.read(micBuf, 0, n)
-                if (m > 0) AudioMixer.mix(sysBuf, micBuf, minOf(n, m)) else sysBuf.copyOf(n)
+                // mix in whatever mic audio accumulated; pad with silence (zeros) if behind
+                val mic = micBuffer.drain(n)
+                val micPadded = if (mic.size == n) mic else mic.copyOf(n)
+                AudioMixer.mix(sysBuf, micPadded, n)
             } else {
                 sysBuf.copyOf(n)
             }
@@ -156,6 +201,10 @@ class AudioEncoder(
 
     fun stop() {
         running = false
+        try {
+            micThread?.join(1_000)
+        } catch (_: Exception) {
+        }
         try {
             captureThread?.join(1_000)
         } catch (_: Exception) {
