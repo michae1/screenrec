@@ -35,8 +35,8 @@ android {
         applicationId = "com.gpwc.screenrec"
         minSdk = 29
         targetSdk = 35
-        versionCode = 5
-        versionName = "2.2"
+        versionCode = 6
+        versionName = "2.3"
     }
 
     buildFeatures {
